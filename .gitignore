@@ -1,0 +1,11 @@
+# Ignore all data files (Proprietary or sensitive data)
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+
+# Ignore all environment variable files
+.env
+
+# Ignore the virtual environment directory
+daen400_venv/
