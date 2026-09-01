@@ -4,6 +4,9 @@
 *.xls
 *.csv
 
+# Ignore Case Study 1 (Due to data privacy concerns)
+01_QA-Analytics/
+
 # Ignore all environment variable files
 .env
 
