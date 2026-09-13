@@ -12,3 +12,6 @@
 
 # Ignore the virtual environment directory
 daen400_venv/
+
+#Ignore all data directories (prevent accidental commits of sensitive data)
+*/data/ 
