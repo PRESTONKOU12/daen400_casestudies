@@ -14,6 +14,7 @@ Usage:
   python train_recommender.py --data-dir ./ml-latest-small --out-dir ./export
   python train_recommender.py --data-dir ./ml-latest-small --tune
 """
+
 import argparse
 import json
 from pathlib import Path
@@ -21,6 +22,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+# ----------------------------------------------------------------------------
+# Config
+# ----------------------------------------------------------------------------
 DATA_DIR = Path("data")       # folder containing ratings.csv, movies.csv, links.csv
 OUT_DIR = Path("export")      # where the JSON files for the UI are written
 N_FACTORS = 32                # latent dimension k
