@@ -2,12 +2,17 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 
+from sklearn.metrics import root_mean_squared_error
+from sklearn.model_selection import train_test_split
+
 from pathlib import Path
 
-# --------------- Config --------------
+
+
+# --------------- Config -------------- 
 # Hyperparameters
-K = 11 # -> number of hidden features (in this case will be the different genres)
-lambda_reg = 0.1 # -> lambda regularization
+K = 11 # -> number of hidden features (in this case will be the different genres) 
+lambda_reg = 0.1 # -> lambda regularization 
 
 
 # Parameters
@@ -16,9 +21,11 @@ num_iterations = 15
 
 
 
-RATINGS = pd.read_csv(Path("data/ratings.csv"))
-MOVIES = pd.read_csv(Path("data/movies.csv"))
+print("Program-Start:")
+print(f"PARAMETERS: \nLambda = {lambda_reg} | K = {K} | Number of Training Iterations = {num_iterations}")
 
+RATINGS = pd.read_csv(Path("data/ratings.csv"))
+#MOVIES = pd.read_csv(Path("data/movies.csv")) #NOTE: Not currently being used.
 
 # -------------- Data Preprocessing ----------------
 # NOTE: V & V part 1: ensuring all indexes are categorically encoded properly. 
@@ -30,19 +37,29 @@ RATINGS['movie_code'] =  RATINGS['movieId'].astype('category').cat.codes
 user_map = dict(enumerate(RATINGS['userId'].astype('category').cat.categories))
 movie_map = dict(enumerate(RATINGS['movieId'].astype('category').cat.categories))
 
-row_indices = RATINGS['user_code'].values
-col_indices = RATINGS['movie_code'].values
-ratings = RATINGS['rating'].values
-
 num_users = int(RATINGS['user_code'].nunique())
 num_movies = int(RATINGS['movie_code'].nunique())
 
-user_item_matrix = sparse.coo_matrix(
-    (ratings, (row_indices, col_indices)), 
-    shape=(num_users, num_movies)
-).tocsr()
+def generate_matrix(indices, ratings):
+    row_indices = indices['user_code'].values
+    col_indices = indices['movie_code'].values
+    rating = ratings.values
+
+    return sparse.coo_matrix(
+        (rating, (row_indices, col_indices)), 
+        shape=(num_users, num_movies)
+    ).tocsr()
+
+indicies_train, indicies_test, ratings_train, ratings_test = train_test_split(RATINGS[['user_code', 'movie_code']], RATINGS['rating'], test_size=0.2)
+
+user_item_matrix = generate_matrix(indicies_train, ratings_train)
 movie_user_matrix = user_item_matrix.tocsc()
 
+
+train_row = indicies_train['user_code'].values
+train_col = indicies_train['movie_code'].values
+test_row = indicies_test['user_code'].values
+test_col = indicies_test['movie_code'].values
 
 
 U = np.random.normal(loc=0, scale=(1/np.sqrt(K)), size=(num_users, K)) #User matrix
@@ -52,8 +69,9 @@ I = np.eye(K)
 
 
 # ------------------------ TRAINING ---------------------------
-for _ in range(1): #BUG: CHANGED NUM ITERATIONS TO MAGIC NUMBER 1 (Change back)
-    #fix U train V
+print("----------------- Begin Training ----------------")
+for training_iteration in range(num_iterations): 
+    #fix V train U
     for user in range(num_users):
         user_slice = user_item_matrix[user, :]
         rated_movie_indexes = user_slice.indices
@@ -72,7 +90,7 @@ for _ in range(1): #BUG: CHANGED NUM ITERATIONS TO MAGIC NUMBER 1 (Change back)
 
     
     
-    #fix V train U 
+    #fix U train V
     for movie in range(num_movies):
         movie_slice = movie_user_matrix[:, movie]
         rated_user_index = movie_slice.indices
@@ -90,10 +108,15 @@ for _ in range(1): #BUG: CHANGED NUM ITERATIONS TO MAGIC NUMBER 1 (Change back)
         V[movie] = np.linalg.solve(A, b)
 
 
+    #RMSE calculation
+    pred_ratings_train = (U[train_row] * V[train_col]).sum(axis=1)
+    training_rmse = root_mean_squared_error(ratings_train, pred_ratings_train)
 
+    pred_ratings_test = (U[test_row] * V[test_col]).sum(axis=1)
+    test_rmse = root_mean_squared_error(ratings_test, pred_ratings_test)
 
-#TODO: 
-# - Move training loop into a function to pass in training split. 
-# - Write RMSE tracker 
-# - Integrate new users and get top 10 movie list.
+    print(f"Iteration: {training_iteration + 1} | Train RMSE: {training_rmse} | Test RMSE: {test_rmse}\n")
+
+print('----------------- End Training ----------------')
+
 
