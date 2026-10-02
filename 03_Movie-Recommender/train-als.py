@@ -1,12 +1,13 @@
-import pandas as pd
-import numpy as np
-from scipy import sparse
+import pandas as pd #type: ignore
+import numpy as np #type: ignore
+from scipy import sparse #type: ignore
 
-from sklearn.metrics import root_mean_squared_error
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import root_mean_squared_error #type: ignore
+from sklearn.model_selection import train_test_split #type: ignore
 
 from pathlib import Path
-
+import os
+import json
 
 
 # --------------- Config -------------- 
@@ -16,7 +17,7 @@ lambda_reg = 0.1 # -> lambda regularization
 
 
 # Parameters
-num_iterations = 15
+num_iterations = 20
 # ----------------------------------------------
 
 
@@ -26,6 +27,9 @@ print(f"PARAMETERS: \nLambda = {lambda_reg} | K = {K} | Number of Training Itera
 
 RATINGS = pd.read_csv(Path("data/ratings.csv"))
 #MOVIES = pd.read_csv(Path("data/movies.csv")) #NOTE: Not currently being used.
+
+
+
 
 # -------------- Data Preprocessing ----------------
 # NOTE: V & V part 1: ensuring all indexes are categorically encoded properly. 
@@ -120,3 +124,20 @@ for training_iteration in range(num_iterations):
 print('----------------- End Training ----------------')
 
 
+# ---------------------- Save to artifacts dir ---------------
+os.makedirs("artifacts", exist_ok=True)
+
+rating_frequency = (
+    RATINGS['movieId']
+    .value_counts()
+    .rename_axis('movieId')
+    .reset_index(name='count')
+    .sort_values('count', ascending=False)
+)
+rating_frequency.to_csv("artifacts/rating_frequency.csv", index=False)
+np.save("artifacts/User_Matrix", U)
+np.save("artifacts/Movie_Matrix", V)
+with open("artifacts/user_map.json", "w") as f:
+    json.dump(user_map, f, indent=4)
+with open("artifacts/movie_map.json", "w") as f:
+    json.dump(movie_map, f, indent=4)

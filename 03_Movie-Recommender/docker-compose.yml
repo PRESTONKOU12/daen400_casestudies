@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "5001:5001"
+    volumes:
+      # Persist artifacts so training only runs once
+      - model-artifacts:/app/artifacts
+    environment:
+      - FLASK_ENV=production
+
+volumes:
+  model-artifacts:

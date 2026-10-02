@@ -1,0 +1,6 @@
+__pycache__
+*.pyc
+.git
+frontend/node_modules
+artifacts/
+daen400_venv/

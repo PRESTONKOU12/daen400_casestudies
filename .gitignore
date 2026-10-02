@@ -15,3 +15,10 @@ daen400_venv/
 
 #Ignore all data directories (prevent accidental commits of sensitive data)
 */data/ 
+
+# ======================= Case study 3 =====================
+03_Movie-Recommender/artifacts/
+03_Movie-Recommender/frontend/node_modules
+
+
+./frontend/node_modules/
