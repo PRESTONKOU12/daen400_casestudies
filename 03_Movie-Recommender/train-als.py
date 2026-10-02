@@ -12,7 +12,7 @@ import json
 
 # --------------- Config -------------- 
 # Hyperparameters
-K = 11 # -> number of hidden features (in this case will be the different genres) 
+K = 11 # -> number of hidden features 
 lambda_reg = 0.1 # -> lambda regularization 
 
 
@@ -54,7 +54,7 @@ def generate_matrix(indices, ratings):
         shape=(num_users, num_movies)
     ).tocsr()
 
-indicies_train, indicies_test, ratings_train, ratings_test = train_test_split(RATINGS[['user_code', 'movie_code']], RATINGS['rating'], test_size=0.2)
+indicies_train, indicies_test, ratings_train, ratings_test = train_test_split(RATINGS[['user_code', 'movie_code']], RATINGS['rating'], test_size=0.2, random_state=42)
 
 user_item_matrix = generate_matrix(indicies_train, ratings_train)
 movie_user_matrix = user_item_matrix.tocsc()
@@ -70,7 +70,8 @@ U = np.random.normal(loc=0, scale=(1/np.sqrt(K)), size=(num_users, K)) #User mat
 V = np.random.normal(loc=0, scale=(1/np.sqrt(K)), size=(num_movies, K)) #Movie matrix
 I = np.eye(K)
 
-
+train_rmse_list = []
+test_rmse_list = []
 
 # ------------------------ TRAINING ---------------------------
 print("----------------- Begin Training ----------------")
@@ -115,17 +116,34 @@ for training_iteration in range(num_iterations):
     #RMSE calculation
     pred_ratings_train = (U[train_row] * V[train_col]).sum(axis=1)
     training_rmse = root_mean_squared_error(ratings_train, pred_ratings_train)
+    train_rmse_list.append((training_iteration, training_rmse))
 
     pred_ratings_test = (U[test_row] * V[test_col]).sum(axis=1)
     test_rmse = root_mean_squared_error(ratings_test, pred_ratings_test)
+    test_rmse_list.append((training_iteration, test_rmse))
 
     print(f"Iteration: {training_iteration + 1} | Train RMSE: {training_rmse} | Test RMSE: {test_rmse}\n")
 
 print('----------------- End Training ----------------')
 
 
-# ---------------------- Save to artifacts dir ---------------
+
+
 os.makedirs("artifacts", exist_ok=True)
+
+import matplotlib.pyplot as plt #type: ignore
+
+iterations_train, rmse_train = zip(*train_rmse_list)
+iterations_test, rmse_test = zip(*test_rmse_list)
+plt.plot(iterations_train, rmse_train, label="Train RMSE")
+plt.plot(iterations_test, rmse_test, label="Test RMSE")
+plt.xlabel("Training Iteration")
+plt.ylabel("RMSE")
+plt.title("Train and Test RMSE")
+plt.legend()
+plt.grid()
+plt.savefig("artifacts/rmse_linechart.png")
+plt.close()
 
 rating_frequency = (
     RATINGS['movieId']

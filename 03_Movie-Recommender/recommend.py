@@ -36,7 +36,7 @@ rating_frequency = rating_frequency.merge(
 
 # Pre-compute the set of "recommendable" movies:
 # only movies with a meaningful number of ratings
-MIN_RATINGS_TO_RECOMMEND = 20
+MIN_RATINGS_TO_RECOMMEND = 5000
 recommendable_movie_ids = set(
     rating_frequency.loc[
         rating_frequency['count'] >= MIN_RATINGS_TO_RECOMMEND, 'movieId'
@@ -134,10 +134,6 @@ def recommend_for_new_user(user_ratings: dict, n: int = 20):
     # Score only recommendable movies (pre-filtered for popularity)
     predictions = V_recommendable @ u_new                 # (n_recommendable,)
 
-    # Clamp to valid rating range
-    predictions = np.clip(predictions, 0.5, 5.0)
-
-    # Exclude movies the user already rated
     rated_mids = set(int(mid) for mid in user_ratings.keys())
     scored = [
         (int(mid), float(pred))
@@ -145,7 +141,11 @@ def recommend_for_new_user(user_ratings: dict, n: int = 20):
         if int(mid) not in rated_mids
     ]
     scored.sort(key=lambda x: x[1], reverse=True)
-    return scored[:n]
+    scored = scored[:n]
+
+    scored = [(mid, float(np.clip(pred, 0.5, 5.0))) for mid, pred in scored]
+
+    return scored
 
 
 # ===================== Flask app =====================
