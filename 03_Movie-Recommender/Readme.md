@@ -36,6 +36,8 @@ At inference time, a new user rates a small subset of movies and the same closed
 
 > **Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
+**Additional Prerequisites:** for first time training ensure that "ratings.csv" and "movies.csv" are downloaded from the 32m dataset [32m Dataset](https://grouplens.org/datasets/movielens/32m/) and imported to the data directory (The files are too large to push to github but are required for local testing).
+
 ```bash
 # 1. Clone the repo
 git clone <repo-url>
