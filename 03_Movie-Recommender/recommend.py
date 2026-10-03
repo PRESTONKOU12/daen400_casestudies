@@ -1,7 +1,7 @@
 # recommend.py
 import json
 import os
-import numpy as np
+import numpy as np 
 import pandas as pd
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
